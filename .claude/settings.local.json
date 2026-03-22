@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__google-stitch__list_screens",
+      "mcp__google-stitch__get_screen",
+      "WebFetch(domain:contribution.usercontent.google.com)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "google-stitch"
+  ]
+}

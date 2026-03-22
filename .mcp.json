@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "google-stitch": {
+      "type": "http",
+      "url": "https://stitch.googleapis.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ya29.a0ATkoCc42rbJZF6cbEL5syDIXyUcCUROZecrSkro0Mc47SNbnzYvHNC_dFFwCE9A-6b9y8Ho-_mYhN-uq7FIeNzoNjkJX1JGeDncQ7e75atToS3OmbXyV7E2EegMJhvU4kqc_RrqOlxhhOZ9YPUfMtXWhQwrKBEDpvDF_dmX3v15XzmAUG8LmzDmCU0xMjM0vph4WCn4aCgYKASASARUSFQHGX2MiOiwiYCfxoKpIGObSxxM0Eg0206"
+      }
+    }
+  }
+}

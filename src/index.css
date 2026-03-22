@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS
+   8px spacing system + consistent design language
+───────────────────────────────────────────── */
+@theme {
+  /* Surface hierarchy */
+  --color-surface:           #0e0e0e;
+  --color-surface-low:       #131313;
+  --color-surface-container: #1a1a1a;
+  --color-surface-high:      #20201f;
+  --color-surface-highest:   #262626;
+  --color-surface-bright:    #2c2c2c;
+
+  /* Brand */
+  --color-primary:           #3fff8b;
+  --color-primary-end:       #13ea79;
+  --color-on-primary:        #005d2c;
+  --color-secondary:         #6e9bff;
+  --color-tertiary:          #7ae6ff;
+
+  /* Text */
+  --color-on-surface:        #ffffff;
+  --color-on-surface-variant:#adaaaa;
+
+  /* Semantic */
+  --color-error:             #ff716c;
+  --color-error-container:   #9f0519;
+  --color-outline:           #767575;
+  --color-outline-variant:   #484847;
+
+  /* Fonts */
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ─────────────────────────────────────────────
+   BASE OVERRIDES
+   O Tailwind v4 já inclui o Preflight (reset de
+   box-sizing, margin, padding, etc). Aqui apenas
+   sobrescrevemos o que é específico do projeto.
+───────────────────────────────────────────── */
+html {
+  /* Garante scroll suave e fundo correto */
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+body {
+  /* min-height em vez de height para não quebrar scroll */
+  min-height: 100dvh;
+  background-color: var(--color-surface);
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* ─────────────────────────────────────────────
+   COMPONENT UTILITIES
+   Shared patterns extracted to avoid repetition
+───────────────────────────────────────────── */
+
+/* Padding horizontal responsivo isolado — para usar em headers sticky
+   que não podem usar page-content diretamente */
+@utility page-padding {
+  padding-inline: 1.25rem;
+}
+@media (min-width: 768px)  { .page-padding { padding-inline: 1.75rem; } }
+@media (min-width: 1024px) { .page-padding { padding-inline: 2.5rem;  } }
+@media (min-width: 1280px) { .page-padding { padding-inline: 3.5rem;  } }
+@media (min-width: 1536px) { .page-padding { padding-inline: 5rem;    } }
+
+/* ─────────────────────────────────────────────
+   Page wrapper — use in every authenticated page.
+
+   Com sidebar fixa de 240px, o conteúdo deve preencher
+   toda a área restante. Não usamos max-width/centering;
+   controlamos a largura via padding horizontal responsivo.
+
+   Breakpoints de padding (área = viewport − 240px sidebar):
+   · mobile  (< 768px) : 20px   — total 40px h-padding
+   · md     (≥ 768px)  : 28px   — total 56px
+   · lg     (≥ 1024px) : 40px   — total 80px   ← sidebar aparece
+   · xl     (≥ 1280px) : 56px   — total 112px
+   · 2xl    (≥ 1536px) : 80px   — total 160px
+───────────────────────────────────────────── */
+@utility page-content {
+  width: 100%;
+  padding: 1.5rem 1.25rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .page-content { padding: 1.75rem 1.75rem 2.5rem; }
+}
+
+@media (min-width: 1024px) {
+  .page-content { padding: 2rem 2.5rem 3rem; }
+}
+
+@media (min-width: 1280px) {
+  .page-content { padding: 2rem 3.5rem 3rem; }
+}
+
+@media (min-width: 1536px) {
+  .page-content { padding: 2.5rem 5rem 3rem; }
+}
+
+/* Standard card */
+@utility card {
+  background: #1a1a1a;
+  border-radius: 1.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Hero card (larger radius + gradient bg) */
+@utility card-hero {
+  background: linear-gradient(145deg, #1a1a1a 0%, #131313 100%);
+  border-radius: 2rem;
+  padding: 1.5rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.40);
+}
+
+/* Section label — consistent typography for all section titles */
+@utility section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-on-surface-variant);
+}
+
+/* Input container */
+@utility input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 3.25rem; /* 52px */
+  padding-inline: 1.125rem;
+  border-radius: 9999px;
+  background: rgba(32, 32, 31, 0.85);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.input-wrapper:focus-within {
+  box-shadow: 0 0 0 1.5px rgba(63, 255, 139, 0.35);
+  background: rgba(44, 44, 44, 0.90);
+}
+
+/* Gradient text — primary brand */
+@utility text-gradient-primary {
+  background: linear-gradient(90deg, #3fff8b 0%, #13ea79 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hide scrollbar */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

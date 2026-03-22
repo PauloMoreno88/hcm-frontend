@@ -1,0 +1,199 @@
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { useNavigate, useParams } from 'react-router-dom'
+import { AppLayout } from '../components/layout/AppLayout'
+import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
+import { useVehicles } from '../hooks/useVehicles'
+import { useMaintenances } from '../hooks/useMaintenances'
+import { useVehicleStore } from '../store/vehicleStore'
+
+const SERVICE_TYPES: { label: string; icon: React.ReactNode }[] = [
+  { label: 'Troca de Óleo', icon: <OilIcon /> },
+  { label: 'Freios',         icon: <BrakeIcon /> },
+  { label: 'Pneus',          icon: <TireIcon /> },
+  { label: 'Motor',          icon: <EngineIcon /> },
+  { label: 'Transmissão',    icon: <TransmIcon /> },
+  { label: 'Outros',         icon: <OtherIcon /> },
+]
+
+interface FormData {
+  date:        string
+  price:       string
+  km:          string
+  description: string
+}
+
+export function EditMaintenancePage() {
+  const navigate              = useNavigate()
+  const { id }                = useParams<{ id: string }>()
+  const { vehicles }          = useVehicles()
+  const { selectedVehicleId } = useVehicleStore()
+  const vehicle               = vehicles.find(v => v.id === selectedVehicleId) ?? vehicles[0] ?? null
+  const { maintenances, update, isLoading } = useMaintenances(vehicle?.id)
+
+  const maintenance = maintenances.find(m => m.id === id) ?? null
+
+  const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [formError,    setFormError]    = useState<string | null>(null)
+  const [isSaving,     setIsSaving]    = useState(false)
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
+
+  /* Pré-preenche o formulário quando os dados carregam */
+  useEffect(() => {
+    if (!maintenance) return
+    setSelectedType(maintenance.type)
+    reset({
+      date:        maintenance.date.slice(0, 10),
+      price:       maintenance.price != null ? String(maintenance.price) : '',
+      km:          maintenance.km ? String(maintenance.km) : '',
+      description: maintenance.description ?? '',
+    })
+  }, [maintenance, reset])
+
+  const onSubmit = async (data: FormData) => {
+    if (!selectedType) { setFormError('Selecione o tipo de serviço.'); return }
+    if (!id)           { return }
+    setFormError(null)
+    setIsSaving(true)
+    try {
+      await update(id, {
+        type:        selectedType,
+        date:        data.date,
+        km:          data.km ? parseInt(data.km, 10) : 0,
+        price:       data.price ? parseFloat(data.price) : undefined,
+        description: data.description || undefined,
+      })
+      navigate('/history')
+    } catch {
+      setFormError('Erro ao salvar. Tente novamente.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="page-content">
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: '#1a1a1a', borderTopColor: '#3fff8b' }} />
+          </div>
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (!maintenance && !isLoading) {
+    return (
+      <AppLayout>
+        <div className="page-content">
+          <p className="text-sm text-on-surface-variant text-center py-20">Manutenção não encontrada.</p>
+        </div>
+      </AppLayout>
+    )
+  }
+
+  return (
+    <AppLayout hideBottomNav>
+      <div className="page-content">
+
+        {/* Header */}
+        <header className="flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors hover:bg-surface-highest cursor-pointer flex-shrink-0"
+            style={{ background: '#1a1a1a' }}
+            aria-label="Voltar"
+          >
+            <BackIcon />
+          </button>
+          <div>
+            <h1 className="font-display font-bold text-2xl text-on-surface leading-tight">
+              Editar Manutenção
+            </h1>
+            <p className="text-xs text-on-surface-variant mt-0.5">
+              Atualize os dados do serviço
+            </p>
+          </div>
+        </header>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+
+          {/* Service type */}
+          <div className="flex flex-col gap-2">
+            <p className="section-label pl-1">Tipo de serviço</p>
+            <div className="grid grid-cols-3 gap-2">
+              {SERVICE_TYPES.map(({ label, icon }) => {
+                const active = selectedType === label
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setSelectedType(label)}
+                    className="flex flex-col items-center gap-2 py-4 px-2 rounded-[1.5rem] text-xs font-semibold transition-all duration-150 cursor-pointer"
+                    style={active
+                      ? { background: 'rgba(63,255,139,0.12)', color: '#3fff8b', boxShadow: '0 0 0 1.5px rgba(63,255,139,0.30)' }
+                      : { background: '#1a1a1a', color: '#adaaaa' }
+                    }
+                  >
+                    <span style={{ color: active ? '#3fff8b' : '#adaaaa' }}>{icon}</span>
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Date + Price */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Data" type="date" icon={<CalIcon />} error={errors.date?.message}
+              {...register('date', { required: 'Informe a data' })} />
+            <Input label="Valor (R$)" type="number" inputMode="decimal" placeholder="0,00"
+              icon={<MoneyIcon />} error={errors.price?.message}
+              {...register('price')} />
+          </div>
+
+          {/* Km */}
+          <Input label="Quilometragem (km)" type="number" inputMode="numeric" placeholder="Ex: 42000"
+            icon={<OdometerIcon />} error={errors.km?.message}
+            {...register('km', { required: 'Informe a quilometragem' })} />
+
+          {/* Description */}
+          <div className="flex flex-col gap-1.5">
+            <p className="section-label pl-1">Descrição</p>
+            <textarea
+              rows={3}
+              placeholder="Detalhes do serviço..."
+              className="w-full px-5 py-4 rounded-[1.5rem] text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none resize-none"
+              style={{ background: 'rgba(32,32,31,0.85)', caretColor: '#3fff8b' }}
+              {...register('description')}
+            />
+          </div>
+
+          {formError && (
+            <p className="text-sm text-center" style={{ color: '#ff716c' }}>{formError}</p>
+          )}
+
+          <Button type="submit" fullWidth isLoading={isSaving}>
+            <CheckIcon /> Salvar alterações
+          </Button>
+
+        </form>
+      </div>
+    </AppLayout>
+  )
+}
+
+function BackIcon()     { return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#adaaaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> }
+function CalIcon()      { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> }
+function MoneyIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> }
+function OdometerIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="12"/></svg> }
+function CheckIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> }
+function OilIcon()      { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2v6l2 2-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6l-2-2 2-2V2"/><line x1="6" y1="12" x2="18" y2="12"/></svg> }
+function BrakeIcon()    { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> }
+function TireIcon()     { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> }
+function EngineIcon()   { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="8" width="20" height="8" rx="2"/><path d="M6 8V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/><path d="M14 8V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3"/></svg> }
+function TransmIcon()   { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="12" cy="19" r="2"/><line x1="7" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="17" y2="12"/><line x1="12" y1="7" x2="12" y2="10"/><line x1="12" y1="14" x2="12" y2="17"/></svg> }
+function OtherIcon()    { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg> }
