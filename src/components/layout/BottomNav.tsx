@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
@@ -9,7 +9,6 @@ const NAV_ITEMS = [
 ]
 
 export function BottomNav() {
-  const navigate = useNavigate()
 
   return (
     <nav
@@ -69,4 +68,4 @@ function DashboardIcon() { return <svg width="20" height="20" viewBox="0 0 24 24
 function HistoryIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="1 4 3 6 5 4"/></svg> }
 function StatsIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> }
 function ProfileIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> }
-function PlusIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#005d2c" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> }
+// function PlusIcon() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#005d2c" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> }
