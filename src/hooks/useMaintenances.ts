@@ -16,14 +16,17 @@ interface UseMaintenancesResult {
 
 export function useMaintenances(vehicleId: string | undefined): UseMaintenancesResult {
   const [maintenances, setMaintenances] = useState<Maintenance[]>([])
-  const [isLoading,    setIsLoading]    = useState(false)
+  const [isLoading,    setIsLoading]    = useState(true)
   const [isCreating,   setIsCreating]   = useState(false)
   const [isRemoving,   setIsRemoving]   = useState(false)
   const [error,        setError]        = useState<string | null>(null)
   const [tick,         setTick]         = useState(0)
 
   useEffect(() => {
-    if (!vehicleId) return
+    if (!vehicleId) {
+      setIsLoading(false)
+      return
+    }
     let cancelled = false
     setIsLoading(true)
     setError(null)

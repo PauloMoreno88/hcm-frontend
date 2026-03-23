@@ -28,10 +28,11 @@ export function HistoryPage() {
   const [filter, setFilter] = useState<string>(validFilters.includes(initialFilter) ? initialFilter : 'all')
   const [search, setSearch] = useState('')
 
-  const { vehicles } = useVehicles()
+  const { vehicles, isLoading: loadingVehicles } = useVehicles()
   const { selectedVehicleId } = useVehicleStore()
   const vehicle = vehicles.find(v => v.id === selectedVehicleId) ?? vehicles[0] ?? null
-  const { maintenances, isLoading, isRemoving, remove } = useMaintenances(vehicle?.id)
+  const { maintenances, isLoading: loadingMaintenances, isRemoving, remove } = useMaintenances(vehicle?.id)
+  const isLoading = loadingVehicles || loadingMaintenances
 
   const [deleteTarget, setDeleteTarget] = useState<Maintenance | null>(null)
 

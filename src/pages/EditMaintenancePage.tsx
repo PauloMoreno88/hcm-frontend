@@ -27,10 +27,11 @@ interface FormData {
 export function EditMaintenancePage() {
   const navigate              = useNavigate()
   const { id }                = useParams<{ id: string }>()
-  const { vehicles }          = useVehicles()
+  const { vehicles, isLoading: loadingVehicles } = useVehicles()
   const { selectedVehicleId } = useVehicleStore()
   const vehicle               = vehicles.find(v => v.id === selectedVehicleId) ?? vehicles[0] ?? null
-  const { maintenances, update, isLoading } = useMaintenances(vehicle?.id)
+  const { maintenances, update, isLoading: loadingMaintenances } = useMaintenances(vehicle?.id)
+  const isLoading = loadingVehicles || loadingMaintenances
 
   const maintenance = maintenances.find(m => m.id === id) ?? null
 

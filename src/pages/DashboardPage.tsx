@@ -145,7 +145,7 @@ export function DashboardPage() {
 
         {/* Bottom row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {loadingMaintenances ? (
+          {loadingVehicles || loadingMaintenances ? (
             <SkeletonCard height={160} />
           ) : nextScheduled ? (
             <NextMaintenance
@@ -161,7 +161,7 @@ export function DashboardPage() {
               onBook={() => navigate('/add-maintenance?mode=schedule')}
             />
           )}
-          {loadingMaintenances ? (
+          {loadingVehicles || loadingMaintenances ? (
             <SkeletonCard height={180} />
           ) : (
             <MaintenanceTimeline
