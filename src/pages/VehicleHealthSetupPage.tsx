@@ -1,6 +1,8 @@
 import { useState, type JSX } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { healthAnswerService } from '../services/api'
+import { useAuthStore } from '../store/authStore'
+import { AppLayout } from '../components/layout/AppLayout'
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 type Answer = 'recent' | 'while' | 'over_year' | 'never' | 'no_timing_belt'
@@ -43,6 +45,9 @@ export function VehicleHealthSetupPage() {
   const navigate       = useNavigate()
   const [searchParams] = useSearchParams()
   const vehicleId      = searchParams.get('vehicleId') ?? ''
+
+  const { user, setHealthScoreEnabled } = useAuthStore()
+  const healthEnabled = user?.healthScoreEnabled !== false
 
   const [step,    setStep]    = useState(0)
   const [answers, setAnswers] = useState<Record<string, Answer>>({})
@@ -88,6 +93,36 @@ export function VehicleHealthSetupPage() {
   }
 
   /* ── Render ─────────────────────────────────────────────────────────────── */
+  if (!healthEnabled) {
+    return (
+      <AppLayout>
+        <div className="page-content flex flex-col items-center justify-center text-center gap-6 py-20">
+          <div
+            className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center"
+            style={{ background: 'rgba(173,170,170,0.10)' }}
+          >
+            <HeartOffIcon />
+          </div>
+          <div>
+            <p className="font-display font-bold text-lg text-on-surface">
+              Saúde do veículo desativada
+            </p>
+            <p className="text-sm text-on-surface-variant mt-1 max-w-xs">
+              Você desativou a visualização da saúde do veículo
+            </p>
+          </div>
+          <button
+            onClick={() => setHealthScoreEnabled(true)}
+            className="h-11 px-8 rounded-full text-sm font-semibold text-on-primary cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #3fff8b 0%, #13ea79 100%)' }}
+          >
+            Ativar novamente
+          </button>
+        </div>
+      </AppLayout>
+    )
+  }
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e' }}>
 
@@ -252,4 +287,7 @@ function CoolantIcon() {
 }
 function ChevronIcon() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#484847" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+}
+function HeartOffIcon() {
+  return <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#adaaaa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M16.5 16.5 12 21l-7-7c-1.5-1.45-3-3.2-3-5.5a5.5 5.5 0 0 1 2.14-4.35"/><path d="M8.76 3.1c1.15.22 2.13.78 3.24 1.57 1.42-1.06 2.93-1.67 4.5-1.67a5.5 5.5 0 0 1 5.5 5.5c0 1.33-.39 2.56-1.1 3.67"/></svg>
 }

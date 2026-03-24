@@ -1,12 +1,13 @@
 import { HealthRing } from './HealthRing'
 
 interface VehicleCardProps {
-  name:        string
-  model:       string
-  healthScore: number
-  status:      string
-  statusOk:    boolean
-  onEdit?:     () => void
+  name:               string
+  model:              string
+  healthScore:        number
+  status:             string
+  statusOk:           boolean
+  healthScoreEnabled: boolean
+  onEdit?:            () => void
 }
 
 function getAlert(score: number): { message: string; color: string } {
@@ -28,7 +29,7 @@ function getAlert(score: number): { message: string; color: string } {
   }
 }
 
-export function VehicleCard({ name, model, healthScore, status, statusOk, onEdit }: VehicleCardProps) {
+export function VehicleCard({ name, model, healthScore, status, statusOk, healthScoreEnabled, onEdit }: VehicleCardProps) {
   const statusColor = statusOk ? '#3fff8b' : '#ff716c'
   const alert       = getAlert(healthScore)
 
@@ -78,21 +79,25 @@ export function VehicleCard({ name, model, healthScore, status, statusOk, onEdit
           </div>
 
           {/* Alert */}
-          <div
-            className="flex items-start gap-2 rounded-2xl p-3"
-            style={{ background: 'rgba(255,255,255,0.04)' }}
-          >
-            <ShieldIcon color={alert.color} className="flex-shrink-0 mt-px" />
-            <p className="text-xs leading-relaxed" style={{ color: alert.color }}>
-              {alert.message}
-            </p>
-          </div>
+          {healthScoreEnabled && (
+            <div
+              className="flex items-start gap-2 rounded-2xl p-3"
+              style={{ background: 'rgba(255,255,255,0.04)' }}
+            >
+              <ShieldIcon color={alert.color} className="flex-shrink-0 mt-px" />
+              <p className="text-xs leading-relaxed" style={{ color: alert.color }}>
+                {alert.message}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Health ring */}
-        <div className="flex-shrink-0">
-          <HealthRing score={healthScore} size={140} strokeWidth={10} />
-        </div>
+        {healthScoreEnabled && (
+          <div className="flex-shrink-0">
+            <HealthRing score={healthScore} size={140} strokeWidth={10} />
+          </div>
+        )}
       </div>
     </div>
   )

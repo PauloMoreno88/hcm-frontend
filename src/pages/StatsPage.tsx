@@ -19,6 +19,7 @@ function computeRank(xp: number): { rank: string; xpGoal: number; nextRank: stri
 
 export function StatsPage() {
   const { user }    = useAuthStore()
+  const healthEnabled = user?.healthScoreEnabled !== false
   const { vehicles, isLoading: loadingVehicles } = useVehicles()
   const { selectedVehicleId } = useVehicleStore()
   const vehicle = vehicles.find(v => v.id === selectedVehicleId) ?? vehicles[0] ?? null
@@ -107,7 +108,7 @@ export function StatsPage() {
 
   const unlockedCount = badges.filter(b => b.unlocked).length
 
-  const metrics = [
+  const allMetrics = [
     {
       id: 'health',
       icon: <HeartIcon />,
@@ -140,6 +141,7 @@ export function StatsPage() {
       accentColor: '#3fff8b',
     },
   ]
+  const metrics = allMetrics.filter(m => m.id !== 'health' || healthEnabled)
 
   if (isLoading) {
     return (

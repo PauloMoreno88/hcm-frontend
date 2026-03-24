@@ -7,6 +7,13 @@ import { Input } from '../components/ui/Input'
 import { useVehicles } from '../hooks/useVehicles'
 import { useMaintenances } from '../hooks/useMaintenances'
 import { useVehicleStore } from '../store/vehicleStore'
+import type { MaintenanceStatus } from '../types/api.types'
+
+const STATUS_OPTIONS: { value: MaintenanceStatus; label: string; color: string; bg: string }[] = [
+  { value: 'TODO',        label: 'A fazer', color: '#adaaaa', bg: 'rgba(173,170,170,0.12)' },
+  { value: 'IN_PROGRESS', label: 'Fazendo', color: '#ffd460', bg: 'rgba(255,212,96,0.12)'  },
+  { value: 'DONE',        label: 'Feito',   color: '#3fff8b', bg: 'rgba(63,255,139,0.10)'  },
+]
 
 const SERVICE_TYPES: { label: string; icon: React.ReactNode }[] = [
   { label: 'Troca de Óleo', icon: <OilIcon /> },
@@ -35,9 +42,10 @@ export function EditMaintenancePage() {
 
   const maintenance = maintenances.find(m => m.id === id) ?? null
 
-  const [selectedType, setSelectedType] = useState<string | null>(null)
-  const [formError,    setFormError]    = useState<string | null>(null)
-  const [isSaving,     setIsSaving]    = useState(false)
+  const [selectedType,   setSelectedType]   = useState<string | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<MaintenanceStatus>('DONE')
+  const [formError,      setFormError]      = useState<string | null>(null)
+  const [isSaving,       setIsSaving]       = useState(false)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>()
 
@@ -45,6 +53,7 @@ export function EditMaintenancePage() {
   useEffect(() => {
     if (!maintenance) return
     setSelectedType(maintenance.type)
+    setSelectedStatus(maintenance.status ?? 'DONE')
     reset({
       date:        maintenance.date.slice(0, 10),
       price:       maintenance.price != null ? String(maintenance.price) : '',
@@ -65,6 +74,7 @@ export function EditMaintenancePage() {
         km:          data.km ? parseInt(data.km, 10) : 0,
         price:       data.price ? parseFloat(data.price) : undefined,
         description: data.description || undefined,
+        status:      selectedStatus,
       })
       navigate('/history')
     } catch {
@@ -144,6 +154,28 @@ export function EditMaintenancePage() {
                   </button>
                 )
               })}
+            </div>
+          </div>
+
+          {/* Status */}
+          <div className="flex flex-col gap-2">
+            <p className="section-label pl-1">Status</p>
+            <div className="flex gap-2">
+              {STATUS_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSelectedStatus(opt.value)}
+                  className="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-2xl text-xs font-semibold transition-all duration-150 cursor-pointer"
+                  style={selectedStatus === opt.value
+                    ? { background: opt.bg, color: opt.color, boxShadow: `0 0 0 1.5px ${opt.color}40` }
+                    : { background: '#1a1a1a', color: '#adaaaa' }
+                  }
+                >
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: selectedStatus === opt.value ? opt.color : '#adaaaa' }} />
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
 

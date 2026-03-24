@@ -1,33 +1,41 @@
 import { create } from 'zustand'
-import { authService } from '../services/api'
+import { authService, userService } from '../services/api'
 import { tokenStorage, ApiError } from '../services/api/client'
 
 const USER_KEY = 'hcm_user'
 const userStorage = {
-  get:    (): User | null => { try { return JSON.parse(localStorage.getItem(USER_KEY) ?? 'null') } catch { return null } },
-  set:    (u: User)       => localStorage.setItem(USER_KEY, JSON.stringify(u)),
-  remove: ()              => localStorage.removeItem(USER_KEY),
+  get: (): User | null => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(USER_KEY) ?? 'null')
+      if (!raw) return null
+      return { healthScoreEnabled: true, ...raw }
+    } catch { return null }
+  },
+  set:    (u: User) => localStorage.setItem(USER_KEY, JSON.stringify(u)),
+  remove: ()        => localStorage.removeItem(USER_KEY),
 }
 
 interface User {
-  id:    string
-  name:  string
-  email: string
+  id:                 string
+  name:               string
+  email:              string
+  healthScoreEnabled: boolean
 }
 
 interface AuthState {
-  user:            User | null
-  isAuthenticated: boolean
-  isLoading:       boolean
-  error:           string | null
+  user:                   User | null
+  isAuthenticated:        boolean
+  isLoading:              boolean
+  error:                  string | null
 
-  login:           (email: string, password: string) => Promise<void>
-  register:        (name: string, email: string, password: string) => Promise<void>
-  loginWithGoogle: () => Promise<void>
-  logout:          () => void
-  clearError:      () => void
+  login:                  (email: string, password: string) => Promise<void>
+  register:               (name: string, email: string, password: string) => Promise<void>
+  loginWithGoogle:        () => Promise<void>
+  logout:                 () => void
+  clearError:             () => void
+  setHealthScoreEnabled:  (enabled: boolean) => Promise<void>
   /** Restaura sessão a partir do token salvo no localStorage */
-  hydrate:         () => void
+  hydrate:                () => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -102,4 +110,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  /* ── Preferência: health score ───────────────────────────────────────── */
+  setHealthScoreEnabled: async (enabled) => {
+    // optimistic update
+    set(state => {
+      if (!state.user) return {}
+      const updated = { ...state.user, healthScoreEnabled: enabled }
+      userStorage.set(updated)
+      return { user: updated }
+    })
+    try {
+      await userService.updatePreferences({ healthScoreEnabled: enabled })
+    } catch {
+      // rollback
+      set(state => {
+        if (!state.user) return {}
+        const reverted = { ...state.user, healthScoreEnabled: !enabled }
+        userStorage.set(reverted)
+        return { user: reverted }
+      })
+    }
+  },
 }))

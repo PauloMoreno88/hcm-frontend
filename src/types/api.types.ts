@@ -13,9 +13,10 @@ export interface RegisterRequest {
 export interface AuthResponse {
   accessToken: string
   user: {
-    id:    string
-    name:  string
-    email: string
+    id:                 string
+    name:               string
+    email:              string
+    healthScoreEnabled: boolean
   }
 }
 
@@ -46,6 +47,8 @@ export interface CreateVehicleRequest {
 export type UpdateVehicleRequest = Partial<CreateVehicleRequest>
 
 /* ── Maintenance ──────────────────────────────────────────────────────────── */
+export type MaintenanceStatus = 'TODO' | 'IN_PROGRESS' | 'DONE'
+
 export interface Maintenance {
   id:           string
   vehicleId:    string
@@ -54,6 +57,7 @@ export interface Maintenance {
   km:           number
   price?:       number
   description?: string
+  status:       MaintenanceStatus
   createdAt:    string
 }
 
@@ -64,6 +68,7 @@ export interface CreateMaintenanceRequest {
   date:         string
   price?:       number
   description?: string
+  status?:      MaintenanceStatus
 }
 
 /* ── Erro da API ──────────────────────────────────────────────────────────── */

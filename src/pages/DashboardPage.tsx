@@ -12,6 +12,7 @@ import { MaintenanceTimeline } from '../components/dashboard/MaintenanceTimeline
 
 export function DashboardPage() {
   const { user }      = useAuthStore()
+  const healthEnabled = user?.healthScoreEnabled !== false
   const navigate      = useNavigate()
   const hour          = new Date().getHours()
   const greeting      = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
@@ -56,12 +57,13 @@ export function DashboardPage() {
     ? scheduledTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
     : undefined
 
-  const metrics = [
+  const allMetrics = [
     { id: 'odometer',   icon: <OdometerIcon />, label: 'Odômetro',            value: vehicle ? vehicle.odometer.toLocaleString('pt-BR') : '—', unit: 'km', accentColor: '#6e9bff', onClick: vehicle ? () => navigate(`/edit-vehicle/${vehicle.id}`) : undefined },
     { id: 'health',     icon: <HeartIcon />,    label: 'Health Score',         value: vehicle ? `${vehicle.healthScore}` : '—',                unit: '%',  accentColor: '#3fff8b' },
     { id: 'scheduled',  icon: <CalendarIcon />, label: 'Próximas manutenções', value: vehicle ? `${scheduled.length}` : '—', subtitle: vehicle ? scheduledTotalFmt : undefined, accentColor: '#7ae6ff', onClick: vehicle ? () => navigate('/history?filter=scheduled') : undefined },
     { id: 'investment', icon: <MoneyIcon />,    label: 'Investimento total',   value: totalInvestment.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), accentColor: '#3fff8b', onClick: vehicle ? () => navigate('/history?filter=all') : undefined },
   ]
+  const metrics = allMetrics.filter(m => m.id !== 'health' || healthEnabled)
 
   return (
     <AppLayout>
@@ -127,8 +129,9 @@ export function DashboardPage() {
             name={vehicle.nickname}
             model={`${vehicle.brand} ${vehicle.model} · ${vehicle.year}`}
             healthScore={vehicle.healthScore}
-            status={vehicle.healthScore >= 80 ? 'Em Plena Saúde' : vehicle.healthScore >= 50 ? 'Atenção necessária' : 'Manutenção urgente'}
-            statusOk={vehicle.healthScore >= 80}
+            status={healthEnabled ? (vehicle.healthScore >= 80 ? 'Em Plena Saúde' : vehicle.healthScore >= 50 ? 'Atenção necessária' : 'Manutenção urgente') : 'Ativo'}
+            statusOk={healthEnabled ? vehicle.healthScore >= 80 : true}
+            healthScoreEnabled={healthEnabled}
             onEdit={() => navigate(`/edit-vehicle/${vehicle.id}`)}
           />
         ) : (

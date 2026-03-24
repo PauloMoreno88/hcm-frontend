@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import { StatusBadge, STATUS_CONFIG } from '../ui/StatusBadge'
+import type { MaintenanceStatus } from '../../types/api.types'
+
 interface HistoryItemProps {
   icon: React.ReactNode
   title: string
@@ -6,9 +10,12 @@ interface HistoryItemProps {
   cost: number
   odometer?: string
   notes?: string
+  status?: MaintenanceStatus
   isScheduled?: boolean
-  onEdit?:   () => void
-  onDelete?: () => void
+  isOverdue?: boolean
+  onEdit?:         () => void
+  onDelete?:       () => void
+  onStatusChange?: (status: MaintenanceStatus) => void
 }
 
 export function HistoryItem({
@@ -19,10 +26,17 @@ export function HistoryItem({
   cost,
   odometer,
   notes,
+  status,
   isScheduled,
+  isOverdue,
   onEdit,
   onDelete,
+  onStatusChange,
 }: HistoryItemProps) {
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const resolvedStatus: MaintenanceStatus = status ?? 'DONE'
+
   return (
     <div className="flex gap-4">
       {/* Thread + nó */}
@@ -53,15 +67,74 @@ export function HistoryItem({
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-display font-semibold text-sm text-on-surface">
-              {title}
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-display font-semibold text-sm text-on-surface">
+                {title}
+              </h3>
+              {isOverdue && (
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0"
+                  style={{ background: 'rgba(255,113,108,0.12)', color: '#ff716c' }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#ff716c' }} />
+                  Atrasada
+                </span>
+              )}
+            </div>
             <p className="text-on-surface-variant text-xs mt-0.5">
               {date}
               {location && (
                 <span className="opacity-60"> · {location}</span>
               )}
             </p>
+
+            {/* Status badge + quick change */}
+            <div className="relative mt-2 inline-block">
+              <button
+                onClick={() => onStatusChange ? setMenuOpen(o => !o) : undefined}
+                className={onStatusChange ? 'cursor-pointer' : 'cursor-default'}
+                aria-label="Alterar status"
+              >
+                <StatusBadge status={resolvedStatus} />
+                {onStatusChange && (
+                  <span className="ml-0.5 text-[9px] text-on-surface-variant opacity-50">▾</span>
+                )}
+              </button>
+
+              {menuOpen && onStatusChange && (
+                <>
+                  {/* Backdrop */}
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  {/* Dropdown */}
+                  <div
+                    className="absolute left-0 top-full mt-1 z-20 rounded-2xl overflow-hidden"
+                    style={{ background: '#242424', minWidth: 148, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
+                  >
+                    {(Object.entries(STATUS_CONFIG) as [MaintenanceStatus, typeof STATUS_CONFIG[MaintenanceStatus]][]).map(([value, cfg]) => (
+                      <button
+                        key={value}
+                        onClick={() => { onStatusChange(value); setMenuOpen(false) }}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium transition-colors hover:bg-white/5 cursor-pointer"
+                        style={{ color: resolvedStatus === value ? cfg.color : '#adaaaa' }}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ background: cfg.color }}
+                        />
+                        {cfg.label}
+                        {resolvedStatus === value && (
+                          <span className="ml-auto" style={{ color: cfg.color }}>✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
             {odometer && (
               <div className="flex items-center gap-1 mt-2">
                 <OdometerIcon />

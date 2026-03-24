@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
 import { maintenanceService } from '../services/api'
-import type { CreateMaintenanceRequest, Maintenance } from '../types/api.types'
+import type { CreateMaintenanceRequest, Maintenance, MaintenanceStatus } from '../types/api.types'
 
 interface UseMaintenancesResult {
-  maintenances: Maintenance[]
-  isLoading:    boolean
-  isCreating:   boolean
-  isRemoving:   boolean
-  error:        string | null
-  create:       (data: CreateMaintenanceRequest) => Promise<Maintenance>
-  update:       (id: string, data: Partial<CreateMaintenanceRequest>) => Promise<Maintenance>
-  remove:       (id: string) => Promise<void>
-  refetch:      () => void
+  maintenances:  Maintenance[]
+  isLoading:     boolean
+  isCreating:    boolean
+  isRemoving:    boolean
+  error:         string | null
+  create:        (data: CreateMaintenanceRequest) => Promise<Maintenance>
+  update:        (id: string, data: Partial<CreateMaintenanceRequest>) => Promise<Maintenance>
+  updateStatus:  (id: string, status: MaintenanceStatus) => Promise<void>
+  remove:        (id: string) => Promise<void>
+  refetch:       () => void
 }
 
 export function useMaintenances(vehicleId: string | undefined): UseMaintenancesResult {
@@ -68,6 +69,26 @@ export function useMaintenances(vehicleId: string | undefined): UseMaintenancesR
     }
   }, [])
 
+  const updateStatus = useCallback(async (id: string, status: MaintenanceStatus): Promise<void> => {
+    let previous: Maintenance | undefined
+    setMaintenances(prev => {
+      previous = prev.find(m => m.id === id)
+      return prev.map(m => m.id === id ? { ...m, status } : m)
+    })
+    try {
+      await maintenanceService.update(id, { status })
+      if (status === 'DONE') {
+        setTick(t => t + 1)
+      }
+    } catch (err: unknown) {
+      if (previous) {
+        setMaintenances(prev => prev.map(m => m.id === id ? previous! : m))
+      }
+      const msg = err instanceof Error ? err.message : 'Erro ao atualizar status'
+      setError(msg)
+    }
+  }, [])
+
   const remove = useCallback(async (id: string): Promise<void> => {
     setIsRemoving(true)
     setError(null)
@@ -91,6 +112,7 @@ export function useMaintenances(vehicleId: string | undefined): UseMaintenancesR
     error,
     create,
     update,
+    updateStatus,
     remove,
     refetch: () => setTick(t => t + 1),
   }

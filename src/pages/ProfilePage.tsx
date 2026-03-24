@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore'
 import { useVehicles } from '../hooks/useVehicles'
 import { useMaintenances } from '../hooks/useMaintenances'
 import { Button } from '../components/ui/Button'
+import { Toggle } from '../components/ui/Toggle'
 
 function computeRankLabel(xp: number): string {
   if (xp < 500)  return 'Bronze'
@@ -14,7 +15,7 @@ function computeRankLabel(xp: number): string {
 }
 
 export function ProfilePage() {
-  const { user, logout } = useAuthStore()
+  const { user, logout, setHealthScoreEnabled } = useAuthStore()
   const navigate         = useNavigate()
 
   const { vehicles }  = useVehicles()
@@ -106,7 +107,7 @@ export function ProfilePage() {
           <div className="grid grid-cols-3 gap-3 w-full">
             {[
               { label: 'Serviços', value: completed.length.toString() },
-              { label: 'Health',   value: vehicle ? `${vehicle.healthScore}%` : '—' },
+              { label: 'Health',   value: user?.healthScoreEnabled !== false && vehicle ? `${vehicle.healthScore}%` : '—' },
               { label: 'Rank',     value: rankLabel },
             ].map(({ label, value }) => (
               <div
@@ -147,6 +148,28 @@ export function ProfilePage() {
                   <ChevronIcon />
                 </button>
               ))}
+              {/* Toggle de health score na seção Preferências */}
+              {group.title === 'Preferências' && (
+                <div
+                  className="w-full flex items-center gap-4 px-5 py-4"
+                  style={{ borderTop: '1px solid rgba(72,72,71,0.10)' }}
+                >
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.05)' }}
+                  >
+                    <span className="text-on-surface-variant"><HeartIcon /></span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-on-surface">Mostrar saúde do veículo</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">Health score e indicadores</p>
+                  </div>
+                  <Toggle
+                    checked={user?.healthScoreEnabled !== false}
+                    onChange={setHealthScoreEnabled}
+                  />
+                </div>
+              )}
             </div>
           </section>
         ))}
@@ -177,3 +200,4 @@ function HelpIcon()   { return <svg width="15" height="15" viewBox="0 0 24 24" f
 function InfoIcon()   { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> }
 function ChevronIcon(){ return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#484847" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg> }
 function LogoutIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> }
+function HeartIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> }

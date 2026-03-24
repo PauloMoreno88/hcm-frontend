@@ -31,7 +31,7 @@ export function HistoryPage() {
   const { vehicles, isLoading: loadingVehicles } = useVehicles()
   const { selectedVehicleId } = useVehicleStore()
   const vehicle = vehicles.find(v => v.id === selectedVehicleId) ?? vehicles[0] ?? null
-  const { maintenances, isLoading: loadingMaintenances, isRemoving, remove } = useMaintenances(vehicle?.id)
+  const { maintenances, isLoading: loadingMaintenances, isRemoving, remove, updateStatus } = useMaintenances(vehicle?.id)
   const isLoading = loadingVehicles || loadingMaintenances
 
   const [deleteTarget, setDeleteTarget] = useState<Maintenance | null>(null)
@@ -176,9 +176,12 @@ export function HistoryPage() {
                     cost={item.price ?? 0}
                     odometer={item.km ? `${item.km.toLocaleString('pt-BR')} km` : undefined}
                     notes={item.description}
+                    status={item.status ?? 'DONE'}
                     isScheduled={item.date.slice(0, 10) > today}
+                    isOverdue={item.date.slice(0, 10) < today && (item.status ?? 'DONE') !== 'DONE'}
                     onEdit={() => navigate(`/edit-maintenance/${item.id}`)}
                     onDelete={() => setDeleteTarget(item)}
+                    onStatusChange={s => updateStatus(item.id, s)}
                   />
                 ))}
               </section>
